@@ -1,0 +1,29 @@
+
+
+  0%|          | 1/1600000 [00:08<3677:21:05,  8.27s/it]Traceback (most recent call last):
+  File "/Users/slavapirogov/fastspeech2/train.py", line 119, in <module>
+    main()
+  File "/Users/slavapirogov/fastspeech2/train.py", line 79, in main
+    mel_output, duration_predictor_output = model(character,
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/slavapirogov/fastspeech2/models/FastSpeechModel.py", line 163, in forward
+    x, non_pad_mask = self.encoder(src_seq, src_pos)
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/slavapirogov/fastspeech2/models/FastSpeechModel.py", line 76, in forward
+    enc_output, enc_slf_attn = enc_layer(
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/slavapirogov/fastspeech2/models/Transformer.py", line 156, in forward
+    enc_output = self.pos_ffn(enc_output)
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/slavapirogov/fastspeech2/models/Transformer.py", line 124, in forward
+    output = self.w_2(F.relu(self.w_1(output)))
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 313, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 309, in _conv_forward
+    return F.conv1d(input, weight, bias, self.stride,

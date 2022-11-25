@@ -1,0 +1,11 @@
+
+
+  0%|          | 2/1600000 [00:31<8164:57:03, 18.37s/it]Traceback (most recent call last):
+  File "/Users/slavapirogov/fastspeech2/train.py", line 118, in <module>
+    main()
+  File "/Users/slavapirogov/fastspeech2/train.py", line 101, in main
+    total_loss.backward()
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/_tensor.py", line 487, in backward
+    torch.autograd.backward(
+  File "/Users/slavapirogov/.conda/envs/PyTorch/lib/python3.10/site-packages/torch/autograd/__init__.py", line 197, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass

@@ -1,0 +1,42 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.10.6",
+    "heartbeatAt": "2022-11-25T14:01:35.650717",
+    "startedAt": "2022-11-25T14:01:34.145067",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/slavapirogov/fastspeech2/train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "https://github.com/messlav/fastspeech2.git",
+        "commit": "015a2ed0c890fa0fd572e68bd0e4d3e9953bd237"
+    },
+    "email": "slav.pirogow@yandex.ru",
+    "root": "/Users/slavapirogov/fastspeech2",
+    "host": "MacBook-Air-Slava.local",
+    "username": "slavapirogov",
+    "executable": "/Users/slavapirogov/.conda/envs/PyTorch/bin/python",
+    "cpu_count": 2,
+    "cpu_count_logical": 4,
+    "cpu_freq": {
+        "current": 1100,
+        "min": 1100,
+        "max": 1100
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1100,
+            "min": 1100,
+            "max": 1100
+        }
+    ],
+    "disk": {
+        "total": 233.46913528442383,
+        "used": 218.1176300048828
+    },
+    "memory": {
+        "total": 8.0
+    }
+}
