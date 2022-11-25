@@ -8,6 +8,7 @@ from tqdm import tqdm
 import utils_fastspeech
 from configs.TrainConfig import TrainConfig
 from configs.FastSpeechConfig import FastSpeechConfig
+from configs.MelSpectrogramConfig import MelSpectrogramConfig
 from models.FastSpeechModel import FastSpeech
 from utils.inference import get_data, synthesis
 
@@ -18,8 +19,9 @@ def main(checkpoint):
 
     model_config = FastSpeechConfig()
     train_config = TrainConfig()
+    mel_config = MelSpectrogramConfig()
 
-    model = FastSpeech(model_config)
+    model = FastSpeech(model_config, mel_config)
     model = model.to(train_config.device)
 
     model.load_state_dict(torch.load(checkpoint, map_location='cuda:0')['model'])
@@ -40,3 +42,8 @@ def main(checkpoint):
                 mel_cuda, WaveGlow,
                 f"results/s={speed}_{i}_waveglow.wav"
             )
+
+
+if __name__ == '__main__':
+    checkpoint = 'checkpoint_3000.pth.tar'
+    main(checkpoint)

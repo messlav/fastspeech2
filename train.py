@@ -10,9 +10,11 @@ from configs.MelSpectrogramConfig import MelSpectrogramConfig
 from configs.FastSpeechConfig import FastSpeechConfig
 from utils.dataload import get_data_to_buffer, BufferDataset, collate_fn_tensor
 from utils.wandb_writer import WanDBWriter
+import utils_fastspeech
+from utils.inference import get_data, synthesis
+import waveglow
 
 from models.FastSpeechModel import FastSpeech
-
 from metrics.FastSpeechLoss import FastSpeechLoss
 
 
@@ -53,6 +55,10 @@ def main():
         "max_lr": train_config.learning_rate,
         "pct_start": 0.1
     })
+    # WaveGlow
+    WaveGlow = utils_fastspeech.get_WaveGlow()
+    WaveGlow = WaveGlow.cuda()
+    data_list = get_data()
     # train
     logger = WanDBWriter(train_config)
     tqdm_bar = tqdm(total=train_config.epochs * len(training_loader) * train_config.batch_expand_size - current_step)
@@ -107,10 +113,19 @@ def main():
                 optimizer.zero_grad(set_to_none=True)
                 scheduler.step()
 
-                if current_step % train_config.save_step == 0:
-                    torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
-                    )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
-                    print("save model at step %d ..." % current_step)
+                # if current_step % train_config.save_step == 0:
+                if True:
+                    # torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
+                    # )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
+                    # print("save model at step %d ..." % current_step)
+
+                    for speed in [0.8, 1., 1.3]:
+                        for q, phn in tqdm(enumerate(data_list)):
+                            mel, mel_cuda = synthesis(model, phn, speed)
+                            audio_inference = waveglow.inference.inference_return_audio(
+                                mel_cuda, WaveGlow
+                            )
+                            logger.add_audio(f'audio_№_{q}_speed_{speed}', audio_inference, 22050)
 
 
 if __name__ == '__main__':
