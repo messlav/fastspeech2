@@ -113,19 +113,20 @@ def main():
                 optimizer.zero_grad(set_to_none=True)
                 scheduler.step()
 
-                # if current_step % train_config.save_step == 0:
-                if True:
-                    # torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
-                    # )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
-                    # print("save model at step %d ..." % current_step)
+                if current_step % train_config.save_step == 0:
+                    torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
+                    )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
+                    print("save model at step %d ..." % current_step)
 
-                    for speed in [0.8, 1., 1.3]:
+                    model = model.eval()
+                    for speed in [0.8, 1., 1.2]:
                         for q, phn in tqdm(enumerate(data_list)):
                             mel, mel_cuda = synthesis(model, phn, speed)
                             audio_inference = waveglow.inference.inference_return_audio(
                                 mel_cuda, WaveGlow
                             )
                             logger.add_audio(f'audio_№_{q}_speed_{speed}', audio_inference, 22050)
+                    model = model.train()
 
 
 if __name__ == '__main__':

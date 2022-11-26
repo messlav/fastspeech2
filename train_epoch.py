@@ -5,14 +5,16 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from torch.optim.lr_scheduler  import OneCycleLR
 
-from configs.TrainConfig import TrainConfig
+from configs.TrainOneEpochConfig import TrainConfig
 from configs.MelSpectrogramConfig import MelSpectrogramConfig
 from configs.FastSpeechConfig import FastSpeechConfig
 from utils.dataload import get_data_to_buffer, BufferDataset, collate_fn_tensor
 from utils.wandb_writer import WanDBWriter
+import utils_fastspeech
+from utils.inference import get_data, synthesis
+import waveglow
 
 from models.FastSpeechModel import FastSpeech
-
 from metrics.FastSpeechLoss import FastSpeechLoss
 
 
@@ -53,6 +55,10 @@ def main():
         "max_lr": train_config.learning_rate,
         "pct_start": 0.1
     })
+    # WaveGlow
+    WaveGlow = utils_fastspeech.get_WaveGlow()
+    WaveGlow = WaveGlow.cuda()
+    data_list = get_data()
     # train
     logger = WanDBWriter(train_config)
     tqdm_bar = tqdm(total=train_config.epochs * len(training_loader) * train_config.batch_expand_size - current_step)
@@ -60,19 +66,18 @@ def main():
         for i, batchs in enumerate(training_loader):
             # real batch start here
             for j, db in enumerate(batchs):
+                # Get Data
+                character = db["text"].long().to(train_config.device)
+                mel_target = db["mel_target"].float().to(train_config.device)
+                duration = db["duration"].int().to(train_config.device)
+                mel_pos = db["mel_pos"].long().to(train_config.device)
+                src_pos = db["src_pos"].long().to(train_config.device)
+                max_mel_len = db["mel_max_len"]
                 while True:
                     current_step += 1
                     tqdm_bar.update(1)
 
                     logger.set_step(current_step)
-
-                    # Get Data
-                    character = db["text"].long().to(train_config.device)
-                    mel_target = db["mel_target"].float().to(train_config.device)
-                    duration = db["duration"].int().to(train_config.device)
-                    mel_pos = db["mel_pos"].long().to(train_config.device)
-                    src_pos = db["src_pos"].long().to(train_config.device)
-                    max_mel_len = db["mel_max_len"]
 
                     # Forward
                     mel_output, duration_predictor_output = model(character,
@@ -112,6 +117,16 @@ def main():
                         torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
                         )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
                         print("save model at step %d ..." % current_step)
+
+                        model = model.eval()
+                        for speed in [0.8, 1., 1.2]:
+                            for q, phn in tqdm(enumerate(data_list)):
+                                mel, mel_cuda = synthesis(model, phn, speed)
+                                audio_inference = waveglow.inference.inference_return_audio(
+                                    mel_cuda, WaveGlow
+                                )
+                                logger.add_audio(f'audio_№_{q}_speed_{speed}', audio_inference, 22050)
+                        model = model.train()
 
 
 if __name__ == '__main__':
