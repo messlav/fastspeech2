@@ -60,6 +60,7 @@ def main():
     WaveGlow = WaveGlow.cuda()
     data_list = get_data()
     # train
+    os.makedirs(train_config.checkpoint_path, exist_ok=True)
     logger = WanDBWriter(train_config)
     tqdm_bar = tqdm(total=train_config.epochs * len(training_loader) * train_config.batch_expand_size - current_step)
     for epoch in range(train_config.epochs):
