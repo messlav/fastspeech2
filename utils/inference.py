@@ -20,6 +20,19 @@ def synthesis(model, phn, alpha=1.0):
     return mel[0].cpu().transpose(0, 1), mel.contiguous().transpose(1, 2)
 
 
+def synthesis2(model, phn, alpha=1.0, alpha2=1.0, alpha3=1.0):
+    text = np.array(phn)
+    text = np.stack([text])
+    src_pos = np.array([i + 1 for i in range(text.shape[1])])
+    src_pos = np.stack([src_pos])
+    sequence = torch.from_numpy(text).long().to(train_config.device)
+    src_pos = torch.from_numpy(src_pos).long().to(train_config.device)
+
+    with torch.no_grad():
+        mel = model.forward(sequence, src_pos, alpha=alpha, alpha2=alpha2, alpha3=alpha3)
+    return mel[0].cpu().transpose(0, 1), mel.contiguous().transpose(1, 2)
+
+
 def get_data():
     # tests = [
     #     "I am very happy to see you again!",

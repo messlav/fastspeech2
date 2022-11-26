@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 
 from models.Transformer import FFTBlock
-from models.LengthRegulator import LengthRegulator
+from models.LengthRegulator import LengthRegulator, AllRegulator
 from configs.FastSpeechConfig import FastSpeechConfig
 from configs.TrainConfig import TrainConfig
 
@@ -169,6 +169,42 @@ class FastSpeech(nn.Module):
             return output, duration_predict_output
         else:
             output, mel_pos = self.length_regulator(x, alpha)
+            output = self.decoder(output, mel_pos)
+            output = self.mel_linear(output)
+            return output
+
+
+class FastSpeech2(nn.Module):
+    """ FastSpeech """
+
+    def __init__(self, model_config, mel_config):
+        super(FastSpeech2, self).__init__()
+
+        self.encoder = Encoder(model_config)
+        self.all_regulator = AllRegulator(model_config, train_config)
+        self.decoder = Decoder(model_config)
+
+        self.mel_linear = nn.Linear(model_config.decoder_dim, mel_config.num_mels)
+
+    def mask_tensor(self, mel_output, position, mel_max_length):
+        lengths = torch.max(position, -1)[0]
+        mask = ~get_mask_from_lengths(lengths, max_len=mel_max_length)
+        mask = mask.unsqueeze(-1).expand(-1, -1, mel_output.size(-1))
+        return mel_output.masked_fill(mask, 0.)
+
+    def forward(self, src_seq, src_pos, mel_pos=None, mel_max_length=None, length_target=None, pitch_target=None,
+                energy_target=None, p_control=1.0, e_control=1.0, d_control=1.0):
+        x, non_pad_mask = self.encoder(src_seq, src_pos)
+        if self.training:
+            output, pitch_predict_output, energy_predict_output, duration_predict_output = \
+                self.all_regulator(x, mel_max_length, pitch_target, energy_target, length_target,
+                                   p_control, e_control, d_control)
+            output = self.decoder(output, mel_pos)
+            output = self.mask_tensor(output, mel_pos, mel_max_length)
+            output = self.mel_linear(output)
+            return output, duration_predict_output, pitch_predict_output, energy_predict_output
+        else:
+            output, mel_pos = self.all_regulator(x, p_control=p_control, e_control=e_control, d_control=d_control)
             output = self.decoder(output, mel_pos)
             output = self.mel_linear(output)
             return output
