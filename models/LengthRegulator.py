@@ -40,7 +40,7 @@ class DurationPredictor(nn.Module):
         self.filter_size = model_config.duration_predictor_filter_size
         self.kernel = model_config.duration_predictor_kernel_size
         self.conv_output_size = model_config.duration_predictor_filter_size
-        self.dropout = model_config.dropout
+        self.dropout = model_config.dropout2
 
         self.conv_net = nn.Sequential(
             Transpose(-1, -2),
@@ -87,7 +87,7 @@ class PitchPredictor(nn.Module):
         self.filter_size = model_config.duration_predictor_filter_size
         self.kernel = model_config.duration_predictor_kernel_size
         self.conv_output_size = model_config.duration_predictor_filter_size
-        self.dropout = model_config.dropout
+        self.dropout = model_config.dropout2
 
         self.conv_net = nn.Sequential(
             Transpose(-1, -2),
@@ -134,7 +134,7 @@ class EnergyPredictor(nn.Module):
         self.filter_size = model_config.duration_predictor_filter_size
         self.kernel = model_config.duration_predictor_kernel_size
         self.conv_output_size = model_config.duration_predictor_filter_size
-        self.dropout = model_config.dropout
+        self.dropout = model_config.dropout2
 
         self.conv_net = nn.Sequential(
             Transpose(-1, -2),

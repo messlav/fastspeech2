@@ -65,7 +65,14 @@ def main():
         wav, _ = librosa.load(f'../data/LJSpeech-1.1/wavs/{wav_now}')
         duration = np.load(os.path.join(
             "../alignments", str(i) + ".npy"))
-
+        print(duration.shape)
+        # energy = np.load(os.path.join(
+        #     '../energies2', "ljspeech-energy-%05d.npy" % (i + 1)))
+        # print(energy.shape)
+        # pitch = np.load(os.path.join(
+        #     '../pitches2', "ljspeech-pitch-%05d.npy" % (i + 1)))
+        # print(pitch.shape)
+        # break
         pitch, t = pw.dio(
             wav.astype(np.float64),
             sampling_rate,
@@ -74,6 +81,15 @@ def main():
         pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
         pitch = pitch[: sum(duration)]
 
+        pos = 0
+        for q, d in enumerate(duration):
+            if d > 0:
+                pitch[q] = np.mean(pitch[pos: pos + d])
+            else:
+                pitch[q] = 0
+            pos += d
+        pitch = pitch[: len(duration)]
+
         audio = torch.clip(torch.FloatTensor(wav).unsqueeze(0), -1, 1)
         audio = torch.autograd.Variable(audio, requires_grad=False)
         energy = STFT.energy(audio)
@@ -81,8 +97,19 @@ def main():
         energy = torch.squeeze(energy, 0).numpy().astype(np.float32)
         energy = energy[: sum(duration)]
 
-        np.save('../pitches/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
-        np.save('../energies/ljspeech-energy-%05d.npy' % (i + 1), energy)
+        pos = 0
+        for q, d in enumerate(duration):
+            if d > 0:
+                energy[q] = np.mean(energy[pos: pos + d])
+            else:
+                energy[q] = 0
+            pos += d
+        energy = energy[: len(duration)]
+        # print(energy.shape, pitch.shape, duration.shape)
+        # break
+
+        np.save('../pitches2/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
+        np.save('../energies2/ljspeech-energy-%05d.npy' % (i + 1), energy)
 
 
 if __name__ == '__main__':

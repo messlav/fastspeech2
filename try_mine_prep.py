@@ -79,7 +79,7 @@ def smth():
         wav, _ = librosa.load(f'../fastspeech2_large_files/data/LJSpeech-1.1/wavs/{wav_now}')
         duration = np.load(os.path.join(
             "./alignments", str(i) + ".npy"))
-
+        print('duration', duration.shape)
         # Compute fundamental frequency
         pitch, t = pw.dio(
             wav.astype(np.float64),
@@ -87,9 +87,21 @@ def smth():
             frame_period=hop_length / sampling_rate * 1000,
         )
         pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
-
-        pitch = pitch[: sum(duration)]
+        print('wav', wav.shape)
         # print('pitch', pitch.shape)
+        pitch = pitch[: sum(duration)]
+        # print('sum', np.sum(pitch != 0))
+        print('pitch', pitch.shape)
+
+        pos = 0
+        for i, d in enumerate(duration):
+            if d > 0:
+                pitch[i] = np.mean(pitch[pos: pos + d])
+            else:
+                pitch[i] = 0
+            pos += d
+        pitch = pitch[: len(duration)]
+        print('pitch final', pitch.shape)
 
         mel_gt_name = os.path.join(
             mel_ground_truth, "ljspeech-mel-%05d.npy" % (i + 1))
@@ -102,12 +114,23 @@ def smth():
         # energy = STFT.energy(torch.from_numpy(wav))
         energy = STFT.energy(audio)
         # melspec = torch.squeeze(melspec, 0).numpy().astype(np.float32)
+        # print(energy.shape)
         energy = torch.squeeze(energy, 0).numpy().astype(np.float32)
+        # print(energy.shape)
         energy = energy[: sum(duration)]
 
         # print(melspec.shape)
-        # print('energy', energy.shape)
-        # break
+        print('energy', energy.shape)
+        pos = 0
+        for i, d in enumerate(duration):
+            if d > 0:
+                energy[i] = np.mean(energy[pos: pos + d])
+            else:
+                energy[i] = 0
+            pos += d
+        energy = energy[: len(duration)]
+        print('energy final', energy.shape)
+        break
         # print("ljspeech-mel-%05d.npy" % (i+1))
         np.save('../fastspeech2_large_files/pitches/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
         np.save('../fastspeech2_large_files/energies/ljspeech-energy-%05d.npy' % (i + 1), energy)

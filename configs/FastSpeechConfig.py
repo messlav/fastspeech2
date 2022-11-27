@@ -22,6 +22,7 @@ class FastSpeechConfig:
     duration_predictor_filter_size = 256
     duration_predictor_kernel_size = 3
     dropout = 0.1
+    dropout2 = 0.5
     
     PAD = 0
     UNK = 1

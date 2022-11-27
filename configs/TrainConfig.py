@@ -8,8 +8,8 @@ class TrainConfig:
     logger_path = "./logger"
     mel_ground_truth = "./mels"
     alignment_path = "./alignments"
-    pitch_path = './pitches'
-    energies_path = './energies'
+    pitch_path = './pitches2'
+    energies_path = './energies2'
     data_path = './data/train.txt'
     
     wandb_project = 'fastspeech'
