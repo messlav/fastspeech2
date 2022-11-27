@@ -4,14 +4,14 @@ import torch
 
 @dataclass
 class TrainConfig:
-    checkpoint_path = "./model_new"
+    checkpoint_path = "./fastspeech2_second_weights"
     logger_path = "./logger"
     mel_ground_truth = "./mels"
     alignment_path = "./alignments"
     pitch_path = './pitches3'
     energies_path = './energies2'
     data_path = './data/train.txt'
-    
+
     wandb_project = 'fastspeech'
     
     text_cleaners = ['english_cleaners']
@@ -19,7 +19,7 @@ class TrainConfig:
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # device = 'cuda:0'
 
-    batch_size = 16
+    batch_size = 48
     epochs = 2000
     n_warm_up_step = 4000
 

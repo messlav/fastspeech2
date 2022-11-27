@@ -68,15 +68,15 @@ def main():
             # real batch start here
             for j, db in enumerate(batchs):
                 # Get Data
-                character = db["text"].long().to(train_config.device)
-                mel_target = db["mel_target"].float().to(train_config.device)
-                duration = db["duration"].int().to(train_config.device)
-                pitch = db["pitch"].int().to(train_config.device)
-                energy = db["energy"].int().to(train_config.device)
-                mel_pos = db["mel_pos"].long().to(train_config.device)
-                src_pos = db["src_pos"].long().to(train_config.device)
-                max_mel_len = db["mel_max_len"]
                 while True:
+                    character = db["text"].long().to(train_config.device)
+                    mel_target = db["mel_target"].float().to(train_config.device)
+                    duration = db["duration"].int().to(train_config.device)
+                    pitch = db["pitch"].int().to(train_config.device)
+                    energy = db["energy"].int().to(train_config.device)
+                    mel_pos = db["mel_pos"].long().to(train_config.device)
+                    src_pos = db["src_pos"].long().to(train_config.device)
+                    max_mel_len = db["mel_max_len"]
                     current_step += 1
                     tqdm_bar.update(1)
 

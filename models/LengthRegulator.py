@@ -282,7 +282,7 @@ class AllRegulator(nn.Module):
     def forward(self, x, mel_max_length=None, pitch_target=None, energy_target=None, duration_target=None,
                 p_control=1.0, e_control=1.0, d_control=1.0,):
 #         print('start all regulator, x', x.shape)
-        log_duration_prediction = self.duration_predictor(x)
+#         log_duration_prediction = self.duration_predictor(x)
 #         print('start pitch embed')
         pitch_prediction, pitch_embedding = self.get_pitch_embedding(
             x, pitch_target, p_control
