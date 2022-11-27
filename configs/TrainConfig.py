@@ -8,7 +8,7 @@ class TrainConfig:
     logger_path = "./logger"
     mel_ground_truth = "./mels"
     alignment_path = "./alignments"
-    pitch_path = './pitches2'
+    pitch_path = './pitches3'
     energies_path = './energies2'
     data_path = './data/train.txt'
     

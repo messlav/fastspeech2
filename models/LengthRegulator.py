@@ -304,6 +304,9 @@ class AllRegulator(nn.Module):
 #                 min=0,
 #             )
 #             x, mel_len = self.length_regulator(x, duration_rounded, mel_max_length)
-        x, duration_predict_output = self.length_regulator(x, d_control, duration_target, mel_max_length)
-
-        return x, pitch_prediction, energy_prediction, duration_predict_output
+        if mel_max_length is not None:
+            x, duration_predict_output = self.length_regulator(x, d_control, duration_target, mel_max_length)
+            return x, pitch_prediction, energy_prediction, duration_predict_output
+        else:
+            x, mel_pos = self.length_regulator(x, d_control)
+            return x, mel_pos
