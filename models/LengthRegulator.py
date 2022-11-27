@@ -238,6 +238,7 @@ class AllRegulator(nn.Module):
         )
 
     def LR(self, x, duration_predictor_output, mel_max_length=None):
+#         print('duration_predictor_output', duration_predictor_output.shape)
         expand_max_len = torch.max(
             torch.sum(duration_predictor_output, -1), -1)[0]
         alignment = torch.zeros(duration_predictor_output.size(0),
@@ -256,7 +257,10 @@ class AllRegulator(nn.Module):
     def get_pitch_embedding(self, x, target, control):
         prediction = self.pitch_predictor(x)
         if target is not None:
+#             print('target', target.shape)
+#             print('bucket', torch.bucketize(target, self.pitch_bins).shape)
             embedding = self.pitch_embedding(torch.bucketize(target, self.pitch_bins))
+#             print('embed', embedding.shape)
         else:
             prediction = prediction * control
             embedding = self.pitch_embedding(
@@ -277,12 +281,13 @@ class AllRegulator(nn.Module):
 
     def forward(self, x, mel_max_length=None, pitch_target=None, energy_target=None, duration_target=None,
                 p_control=1.0, e_control=1.0, d_control=1.0,):
-
+#         print('start all regulator, x', x.shape)
         log_duration_prediction = self.duration_predictor(x)
-
+#         print('start pitch embed')
         pitch_prediction, pitch_embedding = self.get_pitch_embedding(
             x, pitch_target, p_control
         )
+#         print('pitch pred and embed', pitch_prediction.shape, pitch_embedding.shape)
         x = x + pitch_embedding
 
         energy_prediction, energy_embedding = self.get_energy_embedding(
@@ -290,14 +295,15 @@ class AllRegulator(nn.Module):
         )
         x = x + energy_embedding
 
-        if duration_target is not None:
-            x, mel_len = self.length_regulator(x, duration_target, mel_max_length)
-            duration_rounded = duration_target
-        else:
-            duration_rounded = torch.clamp(
-                (torch.round(torch.exp(log_duration_prediction) - 1) * d_control),
-                min=0,
-            )
-            x, mel_len = self.length_regulator(x, duration_rounded, mel_max_length)
+#         if duration_target is not None:
+#             x, mel_len = self.length_regulator(x, duration_target, mel_max_length)
+#             duration_rounded = duration_target
+#         else:
+#             duration_rounded = torch.clamp(
+#                 (torch.round(torch.exp(log_duration_prediction) - 1) * d_control),
+#                 min=0,
+#             )
+#             x, mel_len = self.length_regulator(x, duration_rounded, mel_max_length)
+        x, duration_predict_output = self.length_regulator(x, d_control, duration_target, mel_max_length)
 
-        return x, pitch_prediction, energy_prediction, log_duration_prediction
+        return x, pitch_prediction, energy_prediction, duration_predict_output

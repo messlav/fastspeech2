@@ -127,9 +127,9 @@ def main():
                     scheduler.step()
 
                     if current_step % train_config.save_step == 0:
-                        torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
-                        )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
-                        print("save model at step %d ..." % current_step)
+                        # torch.save({'model': model.state_dict(), 'optimizer': optimizer.state_dict(
+                        # )}, os.path.join(train_config.checkpoint_path, 'checkpoint_%d.pth.tar' % current_step))
+                        # print("save model at step %d ..." % current_step)
 
                         model = model.eval()
                         for q, phn in tqdm(enumerate(data_list)):

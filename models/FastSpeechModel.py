@@ -195,11 +195,15 @@ class FastSpeech2(nn.Module):
     def forward(self, src_seq, src_pos, mel_pos=None, mel_max_length=None, length_target=None, pitch_target=None,
                 energy_target=None, p_control=1.0, e_control=1.0, d_control=1.0):
         x, non_pad_mask = self.encoder(src_seq, src_pos)
+#         print('encoder done')
         if self.training:
             output, pitch_predict_output, energy_predict_output, duration_predict_output = \
                 self.all_regulator(x, mel_max_length, pitch_target, energy_target, length_target,
                                    p_control, e_control, d_control)
+#             print('all regulator done')
+#             print('output', output.shape)
             output = self.decoder(output, mel_pos)
+#             print('output decoder', output.shape)
             output = self.mask_tensor(output, mel_pos, mel_max_length)
             output = self.mel_linear(output)
             return output, duration_predict_output, pitch_predict_output, energy_predict_output
