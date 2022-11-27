@@ -216,7 +216,7 @@ class AllRegulator(nn.Module):
         self.pitch_predictor = PitchPredictor(model_config)
         self.energy_predictor = EnergyPredictor(model_config)
         self.duration_predictor = DurationPredictor(model_config)
-        n_bins = model_config['encoder_dim']
+        n_bins = model_config.encoder_dim
         pitch_min = -2.917079304729967
         pitch_max = 11.391254536985784
         energy_min = -1.431044578552246
@@ -231,10 +231,10 @@ class AllRegulator(nn.Module):
         )
 
         self.pitch_embedding = nn.Embedding(
-            model_config['encoder_dim'], model_config['decoder_dim']
+            model_config.encoder_dim, model_config.decoder_dim
         )
         self.energy_embedding = nn.Embedding(
-            model_config['encoder_dim'], model_config['decoder_dim']
+            model_config.encoder_dim, model_config.decoder_dim
         )
 
     def LR(self, x, duration_predictor_output, mel_max_length=None):
