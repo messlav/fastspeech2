@@ -135,19 +135,19 @@ def main():
                     model = model.eval()
                     for q, phn in tqdm(enumerate(data_list)):
                         for speed in [0.8, 1., 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, speed)
+                            mel, mel_cuda = synthesis2(model, phn, d_control=speed)
                             audio_inference = waveglow.inference.inference_return_audio(
                                 mel_cuda, WaveGlow
                             )
                             logger.add_audio(f'audio_№_{q}_speed_{speed}', audio_inference, 22050)
                         for pitch in [0.8, 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, alpha2=pitch)
+                            mel, mel_cuda = synthesis2(model, phn, p_control=pitch)
                             audio_inference = waveglow.inference.inference_return_audio(
                                 mel_cuda, WaveGlow
                             )
                             logger.add_audio(f'audio_№_{q}_pitch_{pitch}', audio_inference, 22050)
                         for energy in [0.8, 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, alpha3=energy)
+                            mel, mel_cuda = synthesis2(model, phn, e_control=energy)
                             audio_inference = waveglow.inference.inference_return_audio(
                                 mel_cuda, WaveGlow
                             )

@@ -5,6 +5,7 @@ import pyworld as pw
 from tqdm import tqdm
 from utils_fastspeech import process_text
 import torch
+from scipy.interpolate import interp1d
 
 import audio as Audio
 
@@ -65,7 +66,7 @@ def main():
         wav, _ = librosa.load(f'../data/LJSpeech-1.1/wavs/{wav_now}')
         duration = np.load(os.path.join(
             "../alignments", str(i) + ".npy"))
-        print(duration.shape)
+        # print(duration.shape)
         # energy = np.load(os.path.join(
         #     '../energies2', "ljspeech-energy-%05d.npy" % (i + 1)))
         # print(energy.shape)
@@ -80,6 +81,15 @@ def main():
         )
         pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
         pitch = pitch[: sum(duration)]
+
+        nonzero_ids = np.where(pitch != 0)[0]
+        interp_fn = interp1d(
+            nonzero_ids,
+            pitch[nonzero_ids],
+            fill_value=(pitch[nonzero_ids[0]], pitch[nonzero_ids[-1]]),
+            bounds_error=False,
+        )
+        pitch = interp_fn(np.arange(0, len(pitch)))
 
         pos = 0
         for q, d in enumerate(duration):
@@ -106,9 +116,10 @@ def main():
             pos += d
         energy = energy[: len(duration)]
         # print(energy.shape, pitch.shape, duration.shape)
+        # print(pitch.shape, duration.shape)
         # break
 
-        np.save('../pitches2/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
+        np.save('../pitches3/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
         np.save('../energies2/ljspeech-energy-%05d.npy' % (i + 1), energy)
 
 
