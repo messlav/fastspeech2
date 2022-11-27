@@ -20,7 +20,7 @@ def synthesis(model, phn, alpha=1.0):
     return mel[0].cpu().transpose(0, 1), mel.contiguous().transpose(1, 2)
 
 
-def synthesis2(model, phn, alpha=1.0, alpha2=1.0, alpha3=1.0):
+def synthesis2(model, phn, p_control=1.0, e_control=1.0, d_control=1.0):
     text = np.array(phn)
     text = np.stack([text])
     src_pos = np.array([i + 1 for i in range(text.shape[1])])
@@ -29,7 +29,7 @@ def synthesis2(model, phn, alpha=1.0, alpha2=1.0, alpha3=1.0):
     src_pos = torch.from_numpy(src_pos).long().to(train_config.device)
 
     with torch.no_grad():
-        mel = model.forward(sequence, src_pos, alpha=alpha, alpha2=alpha2, alpha3=alpha3)
+        mel = model.forward(sequence, src_pos, p_control=p_control, e_control=e_control, d_control=d_control)
     return mel[0].cpu().transpose(0, 1), mel.contiguous().transpose(1, 2)
 
 
