@@ -52,4 +52,4 @@ python3 train.py
 
 [colab](https://colab.research.google.com/drive/1z_2O81Y0kogEWd8QAGccsDHGR_6zAbP3?usp=sharing)
 
-[same notebook in github]()
+[same notebook in github](https://github.com/messlav/fastspeech2/blob/main/FastSpeech2_inference_example.ipynb)
