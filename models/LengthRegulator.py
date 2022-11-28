@@ -1,10 +1,6 @@
 import torch
 import torch.nn.functional as F
-from torch import distributions
 from torch import nn
-from torch import optim
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
 
 from configs.FastSpeechConfig import FastSpeechConfig
 
@@ -217,16 +213,12 @@ class AllRegulator(nn.Module):
         self.energy_predictor = EnergyPredictor(model_config)
         self.duration_predictor = DurationPredictor(model_config)
         n_bins = model_config.encoder_dim
-        pitch_min = -2.917079304729967
-        pitch_max = 11.391254536985784
-        energy_min = -1.431044578552246
-        energy_max = 8.184337615966797
         self.pitch_bins = nn.Parameter(
-                torch.linspace(pitch_min, pitch_max, n_bins - 1),
-                requires_grad=False,
-            )
+            torch.linspace(model_config.pitch_min, model_config.pitch_max, n_bins - 1),
+            requires_grad=False,
+        )
         self.energy_bins = nn.Parameter(
-            torch.linspace(energy_min, energy_max, n_bins - 1),
+            torch.linspace(model_config.energy_min, model_config.energy_max, n_bins - 1),
             requires_grad=False,
         )
 
@@ -237,30 +229,10 @@ class AllRegulator(nn.Module):
             model_config.encoder_dim, model_config.decoder_dim
         )
 
-    def LR(self, x, duration_predictor_output, mel_max_length=None):
-#         print('duration_predictor_output', duration_predictor_output.shape)
-        expand_max_len = torch.max(
-            torch.sum(duration_predictor_output, -1), -1)[0]
-        alignment = torch.zeros(duration_predictor_output.size(0),
-                                expand_max_len,
-                                duration_predictor_output.size(1)).numpy()
-        alignment = create_alignment(alignment,
-                                     duration_predictor_output.cpu().numpy())
-        alignment = torch.from_numpy(alignment).to(x.device)
-
-        output = alignment @ x
-        if mel_max_length:
-            output = F.pad(
-                output, (0, 0, 0, mel_max_length-output.size(1), 0, 0))
-        return output
-
     def get_pitch_embedding(self, x, target, control):
         prediction = self.pitch_predictor(x)
         if target is not None:
-#             print('target', target.shape)
-#             print('bucket', torch.bucketize(target, self.pitch_bins).shape)
             embedding = self.pitch_embedding(torch.bucketize(target, self.pitch_bins))
-#             print('embed', embedding.shape)
         else:
             prediction = prediction * control
             embedding = self.pitch_embedding(
@@ -281,13 +253,9 @@ class AllRegulator(nn.Module):
 
     def forward(self, x, mel_max_length=None, pitch_target=None, energy_target=None, duration_target=None,
                 p_control=1.0, e_control=1.0, d_control=1.0,):
-#         print('start all regulator, x', x.shape)
-#         log_duration_prediction = self.duration_predictor(x)
-#         print('start pitch embed')
         pitch_prediction, pitch_embedding = self.get_pitch_embedding(
             x, pitch_target, p_control
         )
-#         print('pitch pred and embed', pitch_prediction.shape, pitch_embedding.shape)
         x = x + pitch_embedding
 
         energy_prediction, energy_embedding = self.get_energy_embedding(
@@ -295,15 +263,6 @@ class AllRegulator(nn.Module):
         )
         x = x + energy_embedding
 
-#         if duration_target is not None:
-#             x, mel_len = self.length_regulator(x, duration_target, mel_max_length)
-#             duration_rounded = duration_target
-#         else:
-#             duration_rounded = torch.clamp(
-#                 (torch.round(torch.exp(log_duration_prediction) - 1) * d_control),
-#                 min=0,
-#             )
-#             x, mel_len = self.length_regulator(x, duration_rounded, mel_max_length)
         if mel_max_length is not None:
             x, duration_predict_output = self.length_regulator(x, d_control, duration_target, mel_max_length)
             return x, pitch_prediction, energy_prediction, duration_predict_output

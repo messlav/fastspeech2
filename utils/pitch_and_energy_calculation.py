@@ -10,51 +10,14 @@ from scipy.interpolate import interp1d
 import audio as Audio
 
 
-config = {
-    'path': {
-        'raw_path': '../fastspeech2_large_files/data/LJSpeech-1.1/wavs',
-        'preprocessed_path': '../fastspeech2_large_files/try_preprocess',
-    },
-    'preprocessing': {
-        'audio': {
-            'sampling_rate': 22050
-        },
-        'stft': {
-            'hop_length': 256,
-            'filter_length': 1024,
-            'win_length': 1024,
-        },
-        'pitch': {
-            'feature': 'phoneme_level',
-            'normalization': True
-        },
-        'energy': {
-            'feature': 'phoneme_level',
-            "normalization": True
-        },
-        'mel': {
-            'n_mel_channels': 80,
-            'mel_fmin': 0,
-            'mel_fmax': 8000
-        }
-    },
-}
-
-
 def main():
     print("Processing Data ...")
     sampling_rate = 22050
     hop_length = 256
 
     STFT = Audio.stft.TacotronSTFT(
-            config["preprocessing"]["stft"]["filter_length"],
-            config["preprocessing"]["stft"]["hop_length"],
-            config["preprocessing"]["stft"]["win_length"],
-            config["preprocessing"]["mel"]["n_mel_channels"],
-            config["preprocessing"]["audio"]["sampling_rate"],
-            config["preprocessing"]["mel"]["mel_fmin"],
-            config["preprocessing"]["mel"]["mel_fmax"],
-        )
+        1024, 256, 1024, 80, 22050, 0, 8000
+    )
 
     # Compute pitch, energy
     text = process_text('../data/train.txt')
@@ -66,14 +29,7 @@ def main():
         wav, _ = librosa.load(f'../data/LJSpeech-1.1/wavs/{wav_now}')
         duration = np.load(os.path.join(
             "../alignments", str(i) + ".npy"))
-        # print(duration.shape)
-        # energy = np.load(os.path.join(
-        #     '../energies2', "ljspeech-energy-%05d.npy" % (i + 1)))
-        # print(energy.shape)
-        # pitch = np.load(os.path.join(
-        #     '../pitches2', "ljspeech-pitch-%05d.npy" % (i + 1)))
-        # print(pitch.shape)
-        # break
+
         pitch, t = pw.dio(
             wav.astype(np.float64),
             sampling_rate,
@@ -115,9 +71,6 @@ def main():
                 energy[q] = 0
             pos += d
         energy = energy[: len(duration)]
-        # print(energy.shape, pitch.shape, duration.shape)
-        # print(pitch.shape, duration.shape)
-        # break
 
         np.save('../pitches3/ljspeech-pitch-%05d.npy' % (i + 1), pitch)
         np.save('../energies2/ljspeech-energy-%05d.npy' % (i + 1), energy)

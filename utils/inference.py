@@ -34,14 +34,6 @@ def synthesis2(model, phn, p_control=1.0, e_control=1.0, d_control=1.0):
 
 
 def get_data():
-    # tests = [
-    #     "I am very happy to see you again!",
-    #     "Durian model is a very good speech synthesis!",
-    #     "When I was twenty, I fell in love with a girl.",
-    #     "I remove attention module in decoder and use average pooling to implement predicting r frames at once",
-    #     "You can not improve your past, but you can improve your future. Once time is wasted, life is wasted.",
-    #     "Death comes to all, but great achievements raise a monument which shall endure until the sun grows old."
-    # ]
     tests = [
         "A defibrillator is a device that gives a high energy electric \
         shock to the heart of someone who is in cardiac arrest",

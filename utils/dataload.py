@@ -92,7 +92,7 @@ def reprocess_tensor(batch, cut_list):
     return out
 
 
-train_config = TrainConfig()   # TODO: cringe
+train_config = TrainConfig()
 
 
 def collate_fn_tensor(batch):

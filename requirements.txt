@@ -1,2 +1,10 @@
-kekw
-
+torch
+tqdm
+numpy
+inflect
+gdown
+pyworld
+scikit-learn
+scipy
+unidecode
+librosa

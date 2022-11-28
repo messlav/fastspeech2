@@ -8,14 +8,14 @@ from torch.optim.lr_scheduler  import OneCycleLR
 from configs.TrainConfig import TrainConfig
 from configs.MelSpectrogramConfig import MelSpectrogramConfig
 from configs.FastSpeechConfig import FastSpeechConfig
-from utils.dataload2 import get_data_to_buffer, BufferDataset, collate_fn_tensor
+from utils.dataload import get_data_to_buffer, BufferDataset, collate_fn_tensor
 from utils.wandb_writer import WanDBWriter
 import utils_fastspeech
-from utils.inference import get_data, synthesis2
+from utils.inference import get_data, synthesis
 import waveglow
 
-from models.FastSpeechModel import FastSpeech, FastSpeech2
-from metrics.FastSpeechLoss import FastSpeech2Loss
+from models.FastSpeechModel import FastSpeech
+from metrics.FastSpeechLoss import FastSpeechLoss
 
 
 def main():
@@ -36,10 +36,10 @@ def main():
         num_workers=0
     )
     # model
-    model = FastSpeech2(model_config, mel_config)
+    model = FastSpeech(model_config, mel_config)
     model = model.to(train_config.device)
     # loss and hyperparameters
-    fastspeech_loss = FastSpeech2Loss()
+    fastspeech_loss = FastSpeechLoss()
     current_step = 0
 
     optimizer = torch.optim.AdamW(
@@ -76,45 +76,32 @@ def main():
                 character = db["text"].long().to(train_config.device)
                 mel_target = db["mel_target"].float().to(train_config.device)
                 duration = db["duration"].int().to(train_config.device)
-                pitch = db["pitch"].int().to(train_config.device)
-                energy = db["energy"].int().to(train_config.device)
                 mel_pos = db["mel_pos"].long().to(train_config.device)
                 src_pos = db["src_pos"].long().to(train_config.device)
                 max_mel_len = db["mel_max_len"]
 
                 # Forward
-                mel_output, duration_predictor_output, pitch_predictor_output, energy_predictor_output = model(character,
+                mel_output, duration_predictor_output = model(character,
                                                               src_pos,
                                                               mel_pos=mel_pos,
                                                               mel_max_length=max_mel_len,
-                                                              length_target=duration,
-                                                              pitch_target=pitch,
-                                                              energy_target=energy)
+                                                              length_target=duration)
 
                 # Calc Loss
-                mel_loss, duration_loss, pitch_loss, energy_loss = fastspeech_loss(
-                    mel_output,
-                    duration_predictor_output,
-                    pitch_predictor_output,
-                    energy_predictor_output,
-                    mel_target,
-                    duration,
-                    pitch,
-                    energy)
-                total_loss = mel_loss + duration_loss + pitch_loss + energy_loss
+                mel_loss, duration_loss = fastspeech_loss(mel_output,
+                                                          duration_predictor_output,
+                                                          mel_target,
+                                                          duration)
+                total_loss = mel_loss + duration_loss
 
                 # Logger
                 t_l = total_loss.detach().cpu().numpy()
                 m_l = mel_loss.detach().cpu().numpy()
                 d_l = duration_loss.detach().cpu().numpy()
-                p_l = pitch_loss.detach().cpu().numpy()
-                e_l = energy_loss.detach().cpu().numpy()
 
                 logger.add_scalar("duration_loss", d_l)
                 logger.add_scalar("mel_loss", m_l)
                 logger.add_scalar("total_loss", t_l)
-                logger.add_scalar("pitch_loss", p_l)
-                logger.add_scalar("energy_loss", e_l)
 
                 # Backward
                 total_loss.backward()
@@ -133,38 +120,13 @@ def main():
                     print("save model at step %d ..." % current_step)
 
                     model = model.eval()
-                    for q, phn in tqdm(enumerate(data_list)):
-                        for speed in [0.8, 1., 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, d_control=speed)
+                    for speed in [0.8, 1., 1.2]:
+                        for q, phn in tqdm(enumerate(data_list)):
+                            mel, mel_cuda = synthesis(model, phn, speed)
                             audio_inference = waveglow.inference.inference_return_audio(
                                 mel_cuda, WaveGlow
                             )
                             logger.add_audio(f'audio_№_{q}_speed_{speed}', audio_inference, 22050)
-                        for pitch in [0.8, 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, p_control=pitch)
-                            audio_inference = waveglow.inference.inference_return_audio(
-                                mel_cuda, WaveGlow
-                            )
-                            logger.add_audio(f'audio_№_{q}_pitch_{pitch}', audio_inference, 22050)
-                        for energy in [0.8, 1.2]:
-                            mel, mel_cuda = synthesis2(model, phn, e_control=energy)
-                            audio_inference = waveglow.inference.inference_return_audio(
-                                mel_cuda, WaveGlow
-                            )
-                            logger.add_audio(f'audio_№_{q}_energy_{energy}', audio_inference, 22050)
-
-                        mel, mel_cuda = synthesis2(model, phn, 0.8, 0.8, 0.8)
-                        audio_inference = waveglow.inference.inference_return_audio(
-                            mel_cuda, WaveGlow
-                        )
-                        logger.add_audio(f'audio_№_{q}_all_{0.8}', audio_inference, 22050)
-
-                        mel, mel_cuda = synthesis2(model, phn, 1.2, 1.2, 1.2)
-                        audio_inference = waveglow.inference.inference_return_audio(
-                            mel_cuda, WaveGlow
-                        )
-                        logger.add_audio(f'audio_№_{q}_all_{1.2}', audio_inference, 22050)
-
                     model = model.train()
 
 

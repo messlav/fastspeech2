@@ -33,3 +33,8 @@ class FastSpeechConfig:
     UNK_WORD = '<unk>'
     BOS_WORD = '<s>'
     EOS_WORD = '</s>'
+
+    pitch_min = -2.917079304729967
+    pitch_max = 11.391254536985784
+    energy_min = -1.431044578552246
+    energy_max = 8.184337615966797
